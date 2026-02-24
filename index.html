@@ -1,198 +1,144 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Faithful Families RSVP</title>
-
-<style>
-body{
-font-family:Arial;
-background:#0b1220;
-color:white;
-display:flex;
-justify-content:center;
-padding:30px;
-}
-
-.card{
-max-width:600px;
-width:100%;
-background:#101a33;
-padding:24px;
-border-radius:16px;
-box-shadow:0 15px 40px rgba(0,0,0,.4);
-}
-
-.toggle{
-display:flex;
-gap:10px;
-margin-bottom:20px;
-}
-
-.toggle button{
-flex:1;
-padding:12px;
-border-radius:10px;
-border:none;
-cursor:pointer;
-font-weight:bold;
-}
-
-.attend.active{
-background:#2dd4bf;
-color:#06101f;
-}
-
-.decline.active{
-background:#fb7185;
-color:#06101f;
-}
-
-input{
-width:100%;
-padding:12px;
-margin-bottom:15px;
-border-radius:10px;
-border:1px solid #333;
-background:#1b2444;
-color:white;
-}
-
-.submit{
-background:#7aa2ff;
-border:none;
-padding:12px;
-border-radius:10px;
-font-weight:bold;
-cursor:pointer;
-}
-
-.hidden{display:none;}
-
-.status{margin-top:15px;}
-.ok{color:#2dd4bf;}
-.err{color:#fb7185;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Faithful Families RSVP</title>
+  <style>
+    :root{--bg:#0b1220;--card:#101a33;--text:#e8eefc;--muted:#a9b7dd;--ok:#2dd4bf;--err:#fb7185;}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);display:flex;justify-content:center;padding:24px;}
+    .card{max-width:720px;width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:22px;box-shadow:0 12px 30px rgba(0,0,0,.35);}
+    h1{margin:0 0 8px;font-size:28px;}
+    p{margin:0 0 14px;color:var(--muted);line-height:1.4}
+    .toggle{display:flex;gap:10px;margin:14px 0 18px;}
+    .toggle button{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(16,26,51,.65);color:var(--text);cursor:pointer;font-weight:800}
+    .toggle button.active.attend{background:linear-gradient(135deg,#7aa2ff,#2dd4bf);color:#06101f;border:0}
+    .toggle button.active.decline{background:linear-gradient(135deg,#fb7185,#f97316);color:#06101f;border:0}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    @media(max-width:640px){.grid{grid-template-columns:1fr;}}
+    label{display:block;font-size:13px;color:var(--muted);margin:0 0 6px;}
+    input{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(16,26,51,.65);color:var(--text);font-size:16px;outline:none;}
+    .actions{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap;}
+    .submit{border:0;background:linear-gradient(135deg,#7aa2ff,#2dd4bf);color:#06101f;font-weight:900;padding:12px 16px;border-radius:12px;cursor:pointer;font-size:15px;}
+    .status{margin-top:14px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(16,26,51,.55);display:none;font-size:14px;line-height:1.35}
+    .status.ok{display:block;border-color:rgba(45,212,191,.6);color:var(--text)}
+    .status.err{display:block;border-color:rgba(251,113,133,.6);color:var(--text)}
+    .hidden{display:none;}
+    .req{color:rgba(251,113,133,.95);font-weight:800;}
+  </style>
 </head>
-
 <body>
+  <div class="card">
+    <h1>Faithful Families RSVP</h1>
+    <p>Please respond for <strong>Wednesday at 5:00 PM</strong>. Dinner is provided — knowing the count helps us prepare.</p>
 
-<div class="card">
+    <div class="toggle">
+      <button type="button" id="attendBtn" class="active attend">I'm Attending</button>
+      <button type="button" id="declineBtn" class="decline">I Cannot Attend</button>
+    </div>
 
-<h2>Faithful Families RSVP</h2>
-<p>Wednesday at 5:00 PM • Dinner Provided</p>
+    <!-- Hidden iframe target to avoid page redirect + bypass CORS -->
+    <iframe name="hidden_iframe" id="hidden_iframe" class="hidden"></iframe>
 
-<div class="toggle">
-<button id="attendBtn" class="attend active">I'm Attending</button>
-<button id="declineBtn" class="decline">I Cannot Attend</button>
-</div>
+    <form id="rsvpForm"
+      action="https://script.google.com/macros/s/AKfycbzVRqeJDv8XFq94tYP2QsnmyewD7Vzw29V1dJzEGJhvO4FlSxUpm838dAr6c0YpxgXVfg/exec"
+      method="POST"
+      target="hidden_iframe">
 
-<form id="form">
+      <!-- Always submitted -->
+      <input type="hidden" name="eventName" value="Faithful Families">
+      <input type="hidden" name="eventDateTime" value="Wednesday at 5:00 PM">
+      <input type="hidden" name="status" id="statusField" value="Attending">
 
-<div id="fields">
+      <div id="attendFields">
+        <div class="grid">
+          <div>
+            <label>Name <span class="req">*</span></label>
+            <input name="name" id="name" autocomplete="name" placeholder="First and last name">
+          </div>
+          <div>
+            <label>Number in party <span class="req">*</span></label>
+            <input name="partySize" id="partySize" type="number" min="1" step="1" placeholder="e.g., 3">
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label>Mobile number <span class="req">*</span></label>
+            <input name="mobile" id="mobile" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555">
+          </div>
+        </div>
+      </div>
 
-<input id="name" placeholder="Full Name">
-<input id="mobile" placeholder="Mobile Number">
-<input id="partySize" type="number" min="1" placeholder="Number in Party">
+      <div class="actions">
+        <button class="submit" type="submit" id="submitBtn">Submit Response</button>
+      </div>
 
-</div>
+      <div id="statusMsg" class="status"></div>
+    </form>
+  </div>
 
-<button class="submit" type="submit">Submit Response</button>
+  <script>
+    const attendBtn = document.getElementById("attendBtn");
+    const declineBtn = document.getElementById("declineBtn");
+    const attendFields = document.getElementById("attendFields");
+    const statusField = document.getElementById("statusField");
+    const statusMsg = document.getElementById("statusMsg");
+    const form = document.getElementById("rsvpForm");
 
-<div id="status" class="status"></div>
+    let mode = "Attending";
 
-</form>
+    function setMode(newMode){
+      mode = newMode;
+      statusField.value = newMode;
 
-</div>
+      if(newMode === "Attending"){
+        attendBtn.classList.add("active","attend");
+        declineBtn.classList.remove("active","decline");
+        attendFields.classList.remove("hidden");
+      } else {
+        declineBtn.classList.add("active","decline");
+        attendBtn.classList.remove("active","attend");
+        attendFields.classList.add("hidden");
+      }
+      // clear messages
+      statusMsg.className = "status";
+      statusMsg.textContent = "";
+    }
 
-<script>
+    attendBtn.addEventListener("click", () => setMode("Attending"));
+    declineBtn.addEventListener("click", () => setMode("Declined"));
 
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbzVRqeJDv8XFq94tYP2QsnmyewD7Vzw29V1dJzEGJhvO4FlSxUpm838dAr6c0YpxgXVfg/exec";
+    // show success after iframe load (best-effort)
+    const iframe = document.getElementById("hidden_iframe");
+    iframe.addEventListener("load", () => {
+      statusMsg.className = "status ok";
+      statusMsg.textContent = "Thanks! Your response has been recorded.";
+      form.reset();
+      // keep the current mode after reset
+      statusField.value = mode;
+      if(mode === "Declined") attendFields.classList.add("hidden");
+    });
 
-let statusValue = "Attending";
+    form.addEventListener("submit", (e) => {
+      if(mode === "Attending"){
+        const name = document.getElementById("name").value.trim();
+        const partySize = document.getElementById("partySize").value.trim();
+        const mobile = document.getElementById("mobile").value.trim();
 
-const attendBtn = document.getElementById("attendBtn");
-const declineBtn = document.getElementById("declineBtn");
-const fields = document.getElementById("fields");
-const statusDiv = document.getElementById("status");
+        if(!name || !partySize || !mobile){
+          e.preventDefault();
+          statusMsg.className = "status err";
+          statusMsg.textContent = "Please complete name, party size, and mobile number.";
+          return;
+        }
+      } else {
+        // Declined = no data needed; wipe fields so they aren't submitted
+        document.getElementById("name").value = "";
+        document.getElementById("partySize").value = "";
+        document.getElementById("mobile").value = "";
+      }
 
-attendBtn.onclick = (e)=>{
-e.preventDefault();
-statusValue="Attending";
-attendBtn.classList.add("active");
-declineBtn.classList.remove("active");
-fields.classList.remove("hidden");
-};
-
-declineBtn.onclick = (e)=>{
-e.preventDefault();
-statusValue="Declined";
-declineBtn.classList.add("active");
-attendBtn.classList.remove("active");
-fields.classList.add("hidden");
-};
-
-document.getElementById("form").addEventListener("submit", async (e)=>{
-e.preventDefault();
-
-let payload;
-
-if(statusValue==="Attending"){
-
-const name=document.getElementById("name").value.trim();
-const mobile=document.getElementById("mobile").value.trim();
-const partySize=document.getElementById("partySize").value;
-
-if(!name || !mobile || !partySize){
-statusDiv.textContent="Please complete all fields.";
-statusDiv.className="status err";
-return;
-}
-
-payload={
-name,
-mobile,
-partySize,
-status:"Attending"
-};
-
-}else{
-
-payload={
-name:"Declined (anonymous)",
-mobile:"",
-partySize:0,
-status:"Declined"
-};
-
-}
-
-try{
-const res=await fetch(ENDPOINT,{
-method:"POST",
-headers:{"Content-Type":"text/plain;charset=utf-8"},
-body:JSON.stringify(payload)
-});
-
-const result=await res.json();
-
-if(result.ok){
-statusDiv.textContent="Thank you! Your response has been recorded.";
-statusDiv.className="status ok";
-document.getElementById("form").reset();
-}else{
-throw new Error(result.error);
-}
-
-}catch(err){
-statusDiv.textContent="Submission failed.";
-statusDiv.className="status err";
-}
-
-});
-
-</script>
-
+      statusMsg.className = "status ok";
+      statusMsg.textContent = "Submitting…";
+    });
+  </script>
 </body>
 </html>
