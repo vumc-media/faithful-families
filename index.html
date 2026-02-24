@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Faithful Families RSVP</title>
+  <meta name="description" content="RSVP for Faithful Families - Wednesday at 5:00 PM. Dinner provided." />
+  <style>
+    :root { --bg:#0b1220; --card:#101a33; --text:#e8eefc; --muted:#a9b7dd; --accent:#7aa2ff; --ok:#2dd4bf; --err:#fb7185; }
+    * { box-sizing: border-box; }
+    body {
+      margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(1000px 500px at 20% 0%, rgba(122,162,255,.20), transparent),
+                  radial-gradient(800px 400px at 90% 20%, rgba(45,212,191,.18), transparent),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 24px;
+    }
+    .wrap { width: min(720px, 100%); }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: .2px; }
+    .sub { color: var(--muted); margin: 0 0 14px; line-height: 1.4; }
+    .pillrow { display:flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 18px; }
+    .pill {
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(16,26,51,.6);
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 13px;
+    }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 640px){ .grid { grid-template-columns: 1fr; } }
+    label { display:block; font-size: 13px; color: var(--muted); margin: 0 0 6px; }
+    input {
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(16,26,51,.65);
+      color: var(--text);
+      outline: none;
+      font-size: 16px;
+    }
+    input:focus { border-color: rgba(122,162,255,.7); box-shadow: 0 0 0 4px rgba(122,162,255,.18); }
+    .actions { display:flex; gap: 10px; align-items:center; margin-top: 16px; flex-wrap: wrap; }
+    button {
+      border: 0;
+      background: linear-gradient(135deg, rgba(122,162,255,.95), rgba(45,212,191,.85));
+      color: #06101f;
+      font-weight: 800;
+      padding: 12px 16px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-size: 15px;
+    }
+    button[disabled]{ opacity:.6; cursor:not-allowed; }
+    .note { color: var(--muted); font-size: 13px; }
+    .status {
+      margin-top: 14px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(16,26,51,.55);
+      display:none;
+      line-height: 1.35;
+      font-size: 14px;
+    }
+    .status.ok { display:block; border-color: rgba(45,212,191,.6); }
+    .status.err { display:block; border-color: rgba(251,113,133,.6); }
+    .small { font-size: 12px; color: var(--muted); margin-top: 10px; }
+    .req { color: rgba(251,113,133,.95); font-weight:700; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Faithful Families RSVP</h1>
+      <p class="sub">
+        Please RSVP for <strong>Wednesday at 5:00 PM</strong>. Dinner is provided — knowing the count helps us prepare well.
+      </p>
+
+      <div class="pillrow">
+        <div class="pill">📅 Wed • 5:00 PM</div>
+        <div class="pill">🍽️ Dinner provided</div>
+        <div class="pill">📍 Versailles UMC</div>
+      </div>
+
+      <form id="rsvpForm" novalidate>
+        <div class="grid">
+          <div>
+            <label for="name">Name <span class="req">*</span></label>
+            <input id="name" name="name" autocomplete="name" required placeholder="First and last name" />
+          </div>
+          <div>
+            <label for="partySize">Number in party <span class="req">*</span></label>
+            <input id="partySize" name="partySize" type="number" min="1" step="1" required placeholder="e.g., 3" />
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label for="mobile">Mobile number <span class="req">*</span></label>
+            <input id="mobile" name="mobile" autocomplete="tel" inputmode="tel" required placeholder="(555) 555-5555" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="submitBtn" type="submit">Submit RSVP</button>
+          <span class="note">We’ll send your RSVP to the church team.</span>
+        </div>
+
+        <div id="status" class="status"></div>
+        <div class="small">By submitting, you consent to being contacted about this event.</div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Your Apps Script Web App endpoint (wired in)
+    const ENDPOINT = "https://script.google.com/macros/s/AKfycbzVRqeJDv8XFq94tYP2QsnmyewD7Vzw29V1dJzEGJhvO4FlSxUpm838dAr6c0YpxgXVfg/exec";
+
+    const form = document.getElementById("rsvpForm");
+    const statusEl = document.getElementById("status");
+    const btn = document.getElementById("submitBtn");
+
+    function showStatus(type, msg) {
+      statusEl.className = "status " + type;
+      statusEl.textContent = msg;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = (document.getElementById("name").value || "").trim();
+      const partySize = parseInt(document.getElementById("partySize").value, 10);
+      const mobile = (document.getElementById("mobile").value || "").trim();
+
+      if (!name) return showStatus("err", "Please enter your name.");
+      if (!partySize || partySize < 1) return showStatus("err", "Please enter a party size of 1 or more.");
+      if (!mobile) return showStatus("err", "Please enter a mobile number.");
+
+      btn.disabled = true;
+      btn.textContent = "Submitting…";
+
+      try {
+        const payload = {
+          eventName: "Faithful Families",
+          eventDateTime: "Wednesday at 5:00 PM",
+          name,
+          partySize,
+          mobile,
+          source: "GitHub Pages RSVP",
+          pageUrl: location.href,
+          userAgent: navigator.userAgent
+        };
+
+        const res = await fetch(ENDPOINT, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        let json;
+        try { json = JSON.parse(text); } catch { json = null; }
+
+        if (!res.ok || !json || json.ok !== true) {
+          throw new Error((json && json.error) ? json.error : "Submission failed. Please try again.");
+        }
+
+        showStatus("ok", "Thanks! Your RSVP has been received.");
+        form.reset();
+      } catch (err) {
+        showStatus("err", err.message || "Something went wrong. Please try again.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Submit RSVP";
+      }
+    });
+  </script>
+</body>
+</html>
